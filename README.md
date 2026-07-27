@@ -16,12 +16,21 @@ Note: opening `index.html` directly from the file system will not work — ES mo
 
 ## Install on iPhone
 
-1. Make sure your phone and PC are on the same Wi-Fi.
-2. Run `run.bat` — it prints your PC's LAN IP.
-3. On the iPhone, open Safari and go to `http://YOUR-LAN-IP:5610`.
-4. Tap the **Share** button (square with arrow).
-5. Tap **Add to Home Screen**, then **Add**.
-6. Launch "Cycle" from the home screen — it runs full-screen and works offline from then on.
+The app is hosted at **https://tobycoad.github.io/cycle/** (static files only — your data still never leaves your device).
+
+1. On the iPhone, open Safari and go to `https://tobycoad.github.io/cycle/`.
+2. Tap the **Share** button (square with arrow).
+3. Tap **Add to Home Screen**, then **Add**.
+4. Launch "Cycle" from the home screen — it runs full-screen and works offline from then on.
+
+(Local/LAN install still works too: run `run.bat` and open `http://YOUR-LAN-IP:5610` on the same Wi-Fi.)
+
+## Updates
+
+Every push to `main` deploys via GitHub Actions. Installed apps notice the new
+version in the background (on launch, on re-focus, and hourly) and show an
+**"An update is ready 🎀 tap to refresh"** pill — one tap applies it. Bump
+`CACHE_VERSION` in `sw.js` on every deploy so the precache refreshes.
 
 ## Back up your data — regularly
 

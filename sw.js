@@ -1,6 +1,6 @@
 // sw.js — cache-first service worker. Owner: Agent 1.
 // Bump CACHE_VERSION on any deploy to invalidate the old cache.
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
 const CACHE_NAME = `periodtracker-${CACHE_VERSION}`;
 
 const PRECACHE = [
