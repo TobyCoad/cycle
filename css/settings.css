@@ -1,0 +1,383 @@
+/* css/settings.css — Settings screen + sheets. V3 coquette / vintage-americana (Agent A).
+   Light mode only; flat colour blocks. Uses design tokens from css/app.css
+   (--bg, --card, --text, --muted, --border, --accent, --accent-soft,
+   --accent-grad [solid], --cherry, --cream, --radius, --shadow).
+   .switch lives in app.css (shared with the partner card). */
+
+/* ---------- screen layout ---------- */
+.settings-screen {
+  padding: 16px 16px calc(76px + env(safe-area-inset-bottom, 0px));
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.set-header h1 {
+  font-family: var(--display-font);
+  font-size: 29px;
+  font-weight: 700;
+  margin: 8px 0 4px;
+  letter-spacing: 0.01em;
+}
+
+.settings-screen .section-title {
+  margin-top: 20px;
+}
+
+.set-card {
+  padding: 4px 16px;
+}
+
+/* ---------- rows ---------- */
+.set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.set-row:last-of-type {
+  border-bottom: none;
+}
+
+.set-row-sub {
+  padding-left: 12px;
+}
+
+.set-row-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.set-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  display: block;
+}
+
+.set-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.set-note {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.45;
+  padding: 10px 0 12px;
+  margin: 0;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------- inputs ---------- */
+.set-input {
+  flex: 0 0 auto;
+  width: 84px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* prevents iOS zoom-on-focus */
+  text-align: center;
+}
+
+.set-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.set-input-text {
+  width: 45%;
+  max-width: 180px;
+  text-align: right;
+}
+
+.set-input-time {
+  width: 110px;
+}
+
+/* hide number spinners for a cleaner mobile look */
+.set-input::-webkit-outer-spin-button,
+.set-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ---------- toggle switch: shared .switch is defined in app.css ---------- */
+
+/* ---------- V3: medications editor ---------- */
+.med-editor {
+  padding: 6px 0 12px;
+  border-bottom: 1px solid var(--border);
+}
+.med-editor:last-of-type { border-bottom: none; }
+
+.med-edit-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 0;
+}
+.med-edit-row input {
+  flex: 1 1 120px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* prevents iOS zoom-on-focus */
+}
+.med-edit-row input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.med-edit-row .med-name-input { flex: 2 1 140px; }
+
+.med-time-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.med-time-chip:active { background: var(--accent-soft); }
+.med-time-chip .x,
+.med-time-chip b { color: var(--cherry); }
+
+.med-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  margin: 8px 0 4px;
+  padding: 10px 16px;
+  border: 1.5px dashed var(--cherry);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--cherry);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.med-add:active { background: var(--cherry-soft); }
+
+.med-remove {
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--cherry);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.med-remove:active { background: var(--cherry-soft); }
+
+/* ---------- data action rows ---------- */
+.set-action {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+  min-height: 56px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.set-action:last-of-type {
+  border-bottom: none;
+}
+
+.set-action:active {
+  opacity: 0.65;
+}
+
+.set-action-label {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cherry);
+}
+
+.set-action-hint {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.set-action-danger .set-action-label {
+  color: var(--cherry);
+}
+
+/* ---------- about ---------- */
+.set-about {
+  padding: 16px;
+  text-align: center;
+}
+
+.set-about .bunny-art {
+  margin-bottom: 6px;
+}
+
+.set-about-name {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.set-about-version {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 6px;
+}
+
+.set-about-text {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 10px;
+  color: var(--text);
+}
+
+.set-about-text:last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- bottom sheets (date prompts) ---------- */
+.set-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(64, 22, 46, 0.42);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: set-fade 0.18s ease;
+}
+
+.set-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--card);
+  border-radius: var(--radius) var(--radius) 0 0;
+  box-shadow: var(--shadow);
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  animation: set-rise 0.22s ease;
+}
+
+.set-sheet-title {
+  font-family: var(--display-font);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  letter-spacing: 0.01em;
+}
+
+.set-sheet-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0 0 16px;
+}
+
+.set-date-input {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.set-date-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.set-sheet-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.set-sheet-actions .btn {
+  flex: 1 1 0;
+  min-height: 48px;
+}
+
+@keyframes set-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes set-rise {
+  from { transform: translateY(24px); opacity: 0.6; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ---------- toast ---------- */
+.set-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 12px);
+  z-index: 1400;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  max-width: calc(100vw - 40px);
+  text-align: center;
+}
+
+.set-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}

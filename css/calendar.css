@@ -1,0 +1,468 @@
+/* css/calendar.css — Calendar screen. V3 coquette / vintage-americana (Agent A).
+   Light mode only; flat colour blocks. Uses design tokens from css/app.css.
+   All classes namespaced .cal- to avoid collisions. */
+
+.cal {
+  padding: 12px 12px calc(76px + env(safe-area-inset-bottom));
+  max-width: 480px;
+  margin: 0 auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- header / month nav ---------- */
+
+.cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 2px 12px;
+}
+
+.cal-title {
+  margin: 0;
+  font-family: var(--display-font);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cal-navbtn,
+.cal-todaybtn {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 999px;
+  font: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.cal-navbtn {
+  font-size: 1.5rem;
+  line-height: 1;
+  padding-bottom: 3px; /* optically center the chevron */
+}
+
+.cal-todaybtn {
+  padding: 0 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--cherry);
+}
+
+.cal-todaybtn.isnow {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.cal-navbtn:active,
+.cal-todaybtn:active {
+  transform: scale(0.94);
+  background: var(--accent-soft);
+}
+
+/* ---------- month grid ---------- */
+
+.cal-card {
+  padding: 10px 6px 12px;
+  overflow: hidden; /* clip slide animation */
+  touch-action: pan-y; /* keep vertical scroll, allow horizontal swipe detection */
+}
+
+.cal-weekrow,
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.cal-wd {
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 2px 0 8px;
+}
+
+.cal-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 52px;
+  padding: 2px 0 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cal-cell.out {
+  cursor: default;
+  pointer-events: none;
+}
+
+.cal-cell.out .cal-daynum {
+  color: var(--muted);
+  opacity: 0.35;
+}
+
+/* the day circle — carries flow / predicted / today / ovulation styling */
+.cal-circle {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.cal-circle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--period);
+  opacity: 0;
+}
+
+.cal-daynum {
+  position: relative;
+  z-index: 1;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* logged flow — solid --period, intensity via opacity */
+.cal-cell.flow-spotting .cal-circle::before { opacity: 0.3; }
+.cal-cell.flow-light    .cal-circle::before { opacity: 0.55; }
+.cal-cell.flow-medium   .cal-circle::before { opacity: 0.8; }
+.cal-cell.flow-heavy    .cal-circle::before { opacity: 1; }
+
+.cal-cell.flow-medium .cal-daynum,
+.cal-cell.flow-heavy .cal-daynum {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* predicted future period — translucent + dashed */
+.cal-cell.pred .cal-circle {
+  border: 1.5px dashed var(--predicted-period);
+}
+
+.cal-cell.pred .cal-circle::before {
+  background: var(--predicted-period);
+  opacity: 0.3;
+}
+
+/* fertile window — soft pastel-sky band across the row */
+.cal-cell.fertile {
+  background: rgba(142, 203, 240, 0.18);
+}
+
+@supports (background: color-mix(in srgb, red 10%, transparent)) {
+  .cal-cell.fertile {
+    background: color-mix(in srgb, var(--fertile) 18%, transparent);
+  }
+}
+
+.cal-cell.fertile-start { border-radius: 18px 0 0 18px; }
+.cal-cell.fertile-end   { border-radius: 0 18px 18px 0; }
+.cal-cell.fertile-start.fertile-end { border-radius: 18px; }
+
+/* ovulation — ring around the day circle */
+.cal-cell.ovu .cal-circle {
+  border: 2px solid var(--ovulation);
+}
+
+.cal-cell.ovu .cal-daynum {
+  color: var(--ovulation);
+  font-weight: 700;
+}
+
+/* today — outline */
+.cal-cell.today .cal-circle {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.cal-cell.today .cal-daynum {
+  font-weight: 700;
+}
+
+/* small dot marker: day has non-flow log data */
+.cal-mark {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 3px;
+  flex: none;
+}
+
+.cal-mark.off {
+  visibility: hidden;
+}
+
+.cal-cell:active .cal-circle {
+  transform: scale(0.92);
+  transition: transform 0.1s ease;
+}
+
+/* month-change slide */
+@keyframes cal-slide-left {
+  from { transform: translateX(24px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes cal-slide-right {
+  from { transform: translateX(-24px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+.cal-grid.anim-left  { animation: cal-slide-left 0.18s ease-out; }
+.cal-grid.anim-right { animation: cal-slide-right 0.18s ease-out; }
+
+/* ---------- legend ---------- */
+
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+  padding: 12px 4px 4px;
+}
+
+.cal-lg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.cal-sw {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex: none;
+  display: inline-block;
+}
+
+.cal-sw.sw-period { background: var(--period); }
+.cal-sw.sw-pred   { background: var(--predicted-period); border: 1.5px dashed var(--period); }
+.cal-sw.sw-fert   { background: rgba(142, 203, 240, 0.4); border-radius: 5px; }
+.cal-sw.sw-ovu    { background: transparent; border: 2px solid var(--ovulation); }
+.cal-sw.sw-mark   { width: 6px; height: 6px; background: var(--accent); margin: 0 4px; }
+
+@supports (background: color-mix(in srgb, red 10%, transparent)) {
+  .cal-sw.sw-fert { background: color-mix(in srgb, var(--fertile) 40%, transparent); }
+}
+
+/* ---------- empty-state hint ---------- */
+
+.cal-empty {
+  margin-top: 12px;
+  padding: 14px 16px;
+}
+
+.cal-empty p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ---------- day-detail bottom sheet ---------- */
+
+.cal-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(64, 22, 46, 0.42);
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: cal-fade 0.15s ease-out;
+}
+
+@keyframes cal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.cal-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 78vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--card);
+  color: var(--text);
+  border-radius: var(--radius) var(--radius) 0 0;
+  box-shadow: var(--shadow);
+  padding: 8px 18px calc(18px + env(safe-area-inset-bottom));
+  animation: cal-sheet-up 0.22s ease-out;
+}
+
+@keyframes cal-sheet-up {
+  from { transform: translateY(40px); opacity: 0.4; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.cal-sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent-soft);
+  margin: 6px auto 10px;
+}
+
+.cal-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.cal-sheet-title {
+  margin: 0;
+  font-family: var(--display-font);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.cal-sheet-close {
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.6rem;
+  line-height: 1;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.cal-sheet-close:active {
+  background: var(--accent-soft);
+}
+
+.cal-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.cal-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.cal-badge.b-period { background: var(--accent-soft); color: #a4396b; }
+.cal-badge.b-pred   { background: var(--accent-soft); color: #a4396b; border: 1px dashed var(--predicted-period); }
+.cal-badge.b-fert   { background: rgba(142, 203, 240, 0.22); color: var(--ovulation); }
+.cal-badge.b-ovu    { background: rgba(142, 203, 240, 0.22); color: var(--ovulation); border: 1px solid var(--ovulation); }
+
+/* V3 day-sheet indicator badges (glow / libido / expected-heavy) */
+.cal-badge.b-glow  { background: var(--cream); color: var(--gold); border: 1px solid #ecd9ae; }
+.cal-badge.b-sex,
+.cal-badge.b-libido { background: var(--cherry-soft); color: var(--cherry); border: 1px solid #e8bfc3; }
+.cal-badge.b-heavy { background: var(--cherry); color: #fff; }
+
+.cal-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+}
+
+.cal-row-name {
+  flex: none;
+  width: 92px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  padding-top: 3px;
+}
+
+.cal-row-val {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 0.88rem;
+  align-items: center;
+}
+
+.cal-tag {
+  background: var(--accent-soft);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.cal-row-notes {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cal-note {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text);
+}
+
+.cal-sheet-none {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin: 4px 0 12px;
+}
+
+.cal-sheet-edit {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 14px;
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cal-grid.anim-left,
+  .cal-grid.anim-right,
+  .cal-sheet,
+  .cal-sheet-backdrop {
+    animation: none;
+  }
+}

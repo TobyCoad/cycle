@@ -1,0 +1,240 @@
+/* css/insights.css — Insights screen. V3 coquette / vintage-americana (Agent A).
+   Light mode only; flat colour blocks. */
+
+/* Chart-only tokens (phase palette + chart chrome). Base tokens come from app.css. */
+:root {
+  --ins-follicular: #a685e8;   /* soft lavender (pairs with --lavender) */
+  --ins-luteal: #d98a3d;       /* warm apricot, readable on light surfaces */
+  --ins-prev: #b79aa8;         /* previous-cycle line — soft mauve */
+  --ins-band: rgba(142, 203, 240, 0.18); /* 21–35 day normal band, pastel sky */
+}
+
+/* ---------- layout ---------- */
+
+.ins-wrap {
+  padding: 16px 16px calc(84px + env(safe-area-inset-bottom, 0px));
+}
+
+.ins-header h1 {
+  font-family: var(--display-font);
+  font-size: 27px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+.ins-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ---------- stat tiles ---------- */
+
+.ins-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 14px 0 4px;
+}
+.ins-tile {
+  padding: 14px 14px 12px;
+}
+.ins-tile-value {
+  font-family: var(--display-font);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--cherry);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.ins-tile-unit {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 2px;
+}
+.ins-tile-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+/* ---------- chart sections ---------- */
+
+.ins-section {
+  margin: 12px 0;
+  overflow: hidden; /* keep wide SVGs inside the rounded card */
+}
+.ins-note {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 2px 0 12px;
+}
+.ins-chart-empty {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  padding: 22px 8px;
+}
+
+/* ---------- SVG chart chrome ---------- */
+
+.ins-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.ins-svg text {
+  font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+.ins-ax {
+  font-size: 9px;
+  fill: var(--muted);
+}
+.ins-ax-strong {
+  font-size: 10px;
+  font-weight: 600;
+  fill: var(--text);
+}
+.ins-val {
+  font-size: 9px;
+  font-weight: 600;
+  fill: var(--muted);
+}
+.ins-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.ins-axis {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+.ins-band {
+  fill: var(--ins-band);
+}
+.ins-band-label {
+  font-size: 8.5px;
+  fill: var(--muted);
+}
+.ins-bar {
+  fill: var(--accent);
+}
+.ins-avg {
+  stroke: var(--text);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+  opacity: 0.55;
+}
+.ins-avg-label {
+  font-size: 9px;
+  font-weight: 600;
+  fill: var(--text);
+  opacity: 0.75;
+}
+.ins-row-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  fill: var(--text);
+}
+.ins-pct {
+  font-size: 8.5px;
+  fill: var(--muted);
+}
+.ins-end {
+  font-size: 9px;
+  font-weight: 600;
+  fill: var(--muted);
+}
+.ins-line-prev {
+  stroke: var(--ins-prev);
+}
+.ins-line-cur {
+  stroke: var(--accent);
+}
+
+/* ---------- V3: pain / flow-by-cycle-day charts ---------- */
+
+.ins-pain-chart {
+  margin: 12px 0;
+  overflow: hidden;
+}
+.ins-pain-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.ins-pain-chart text {
+  font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+.ins-pain-chart .ins-bar,
+.ins-pain-chart .ins-bar-pain {
+  fill: var(--cherry);
+}
+.ins-pain-chart .ins-bar-flow {
+  fill: var(--period);
+}
+.ins-pain-chart .ins-line-cur {
+  stroke: var(--cherry);
+}
+
+/* ---------- legend ---------- */
+
+.ins-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0 0 10px;
+}
+.ins-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.ins-key i {
+  width: 10px;
+  height: 10px;
+  border-radius: 4px;
+  display: inline-block;
+  flex: none;
+}
+
+/* ---------- empty state ---------- */
+
+.ins-empty {
+  text-align: center;
+  padding: 30px 20px;
+  margin: 12px 0;
+}
+.ins-empty .bunny-art {
+  margin-bottom: 8px;
+}
+.ins-empty h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.ins-empty p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* ---------- export ---------- */
+
+.ins-export {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 16px;
+  font-size: 15px;
+}
+.ins-privacy {
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 8px;
+}

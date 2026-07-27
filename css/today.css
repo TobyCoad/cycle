@@ -1,0 +1,832 @@
+/* today.css — Today screen + Log screen. V3 coquette / vintage-americana (Agent A).
+   Light mode only. Flat colour blocks — no ombre. Hard-stop patterns allowed.
+   Relies on tokens + shared classes from css/app.css (.card, .chip, .btn, .section-title). */
+
+/* ---------- shared screen scaffold ---------- */
+.today-screen,
+.log-screen {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 16px calc(88px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ---------- Today: header ---------- */
+.today-header {
+  padding: 6px 4px 0;
+}
+.today-greet {
+  font-family: var(--display-font);
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.today-date {
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ---------- Today: cycle ring ---------- */
+.ring-wrap {
+  position: relative;
+  width: 240px;
+  max-width: 70vw;
+  margin: 6px auto 2px;
+}
+.ring-wrap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  padding: 34px;
+}
+.ring-phase {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--cherry);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.ring-day {
+  font-family: var(--display-font);
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: 0.01em;
+}
+.ring-sub {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ---------- Today: status cards ---------- */
+.status-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.status-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
+.status-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.status-sub {
+  font-size: 14px;
+  color: var(--muted);
+}
+.status-grad {
+  background: var(--accent-grad);
+  border: none;
+  color: #fff;
+}
+.status-grad .status-sub {
+  color: rgba(255, 255, 255, 0.9);
+}
+.status-grad .status-kicker {
+  color: rgba(255, 255, 255, 0.82);
+}
+.status-fertile {
+  background: rgba(142, 203, 240, 0.16);
+  border: 1px solid rgba(142, 203, 240, 0.4);
+}
+.status-fertile .status-kicker {
+  color: var(--ovulation);
+}
+.status-ovu {
+  background: rgba(94, 179, 232, 0.18);
+  border: 1px solid rgba(94, 179, 232, 0.45);
+}
+.status-ovu .status-kicker {
+  color: var(--ovulation);
+}
+
+/* ---------- Today: tip card ---------- */
+.tip-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--accent-soft);
+  border: none;
+  box-shadow: none;
+}
+.tip-icon {
+  font-size: 24px;
+  line-height: 1.2;
+}
+.tip-title {
+  font-weight: 800;
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+.tip-body {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* ---------- Today: feelings preview ---------- */
+.feel-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.feel-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mini-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.feel-empty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.feel-btn {
+  min-height: 48px;
+  width: 100%;
+}
+
+/* ---------- Today: onboarding + pregnancy ---------- */
+.onboard-card {
+  text-align: center;
+  padding-top: 28px;
+  padding-bottom: 26px;
+}
+.onboard-emoji {
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.onboard-card h2 {
+  margin: 0 0 8px;
+  font-size: 21px;
+  letter-spacing: -0.01em;
+}
+.onboard-card p {
+  margin: 0 auto 18px;
+  max-width: 300px;
+  font-size: 14.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.onboard-card .btn {
+  min-height: 48px;
+  padding-left: 26px;
+  padding-right: 26px;
+}
+
+.preg-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+  padding-top: 24px;
+  padding-bottom: 22px;
+}
+.preg-week {
+  font-family: var(--display-font);
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--accent-grad); /* token is a solid colour in V3 */
+}
+.preg-tri {
+  font-size: 14px;
+  color: var(--muted);
+}
+.preg-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  overflow: hidden;
+  margin: 8px 6px 2px;
+}
+.preg-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent-grad);
+  transition: width 0.4s ease;
+}
+.preg-due {
+  font-size: 14px;
+  color: var(--muted);
+}
+.preg-due strong {
+  color: var(--text);
+}
+
+/* ---------- Log: hello header (small mascot) ---------- */
+.lg-hello {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 6px 0;
+}
+.lg-hello-text {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.lg-hello-sub {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+/* ---------- Log: date bar ---------- */
+.lg-datebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 10;
+}
+.datenav {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.datenav:active {
+  background: var(--accent-soft);
+}
+.datenav:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+.lg-datelabel {
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+}
+.lg-datemain {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.lg-datesub {
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lg-jump {
+  align-self: center;
+  min-height: 44px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--cherry);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ---------- Log: chip sections ---------- */
+.lg-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lg-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  vertical-align: 2px;
+}
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip-row .chip {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+}
+.chip-emoji {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* ---------- Log: measurements ---------- */
+.measure-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.measure {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.measure-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.measure-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg);
+  padding: 0 12px;
+  min-height: 46px;
+}
+.measure-input input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 16px; /* ≥16px prevents iOS zoom-on-focus */
+  font-weight: 600;
+  padding: 10px 0;
+  outline: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.measure-input input::-webkit-outer-spin-button,
+.measure-input input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.measure-input .unit {
+  font-size: 13px;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+.water-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.water-label {
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.step-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.step-btn:active {
+  transform: scale(0.94);
+}
+.step-btn:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+.water-val {
+  min-width: 34px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+}
+.water-unit {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- Log: notes ---------- */
+.lg-notes {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  padding: 12px;
+  resize: vertical;
+  min-height: 96px;
+  outline: none;
+}
+.lg-notes:focus {
+  border-color: var(--accent);
+}
+
+/* ---------- Log: saved toast ---------- */
+.save-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  transform: translateX(-50%) translateY(8px);
+  background: var(--card);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 60;
+}
+.save-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---------- V2: moon + hormones cards ---------- */
+.moon-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.moon-emoji {
+  font-size: 44px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(92, 58, 77, 0.18));
+}
+.moon-text .section-title {
+  margin: 0 0 2px;
+}
+.moon-name {
+  font-weight: 800;
+  font-size: 18px;
+}
+.moon-illum {
+  color: var(--muted);
+  font-size: 13px;
+}
+.moon-arch {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+.moon-blurb {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-family: var(--display-font);
+  font-style: italic;
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+.moon-affirmation {
+  margin: 12px 0 0;
+  font-family: var(--display-font);
+  font-style: italic;
+  text-align: center;
+  color: var(--cherry);
+  font-size: 15px;
+}
+.hormone-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+.hormone-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.hp-low { opacity: 0.65; }
+.hp-rising { background: var(--accent-soft); }
+.hp-peak { background: var(--accent-grad); color: #fff; } /* solid token */
+.hp-falling {
+  background: transparent;
+  border: 1.5px dashed var(--border);
+}
+
+/* =============================================================
+   V3 card contracts (coquette treatments)
+   ============================================================= */
+
+/* ---------- Meds card ---------- */
+.meds-card .med-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.meds-card .med-row:last-child { border-bottom: none; }
+
+/* cherry check in a lace circle */
+.med-tick {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px dotted var(--accent);      /* lace edge — dotted, not faded */
+  background: #fff;
+  color: transparent;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s ease, border-color .15s ease, transform .1s ease;
+}
+.med-tick:active { transform: scale(.92); }
+.med-tick::after { content: '✓'; }
+.med-tick.taken {
+  background: var(--cream);
+  border-style: solid;
+  border-color: var(--cherry);
+  color: var(--cherry);
+}
+
+/* overdue — cherry-warm, works on a row or on the tick itself */
+.med-row.med-overdue,
+.meds-card .med-overdue:not(.med-tick):not(.med-row) {
+  background: var(--cherry-soft);
+  border-radius: 14px;
+  margin-left: -8px;
+  margin-right: -8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  border-bottom-color: transparent;
+}
+.med-overdue .med-tick,
+.med-tick.med-overdue {
+  border-color: var(--cherry);
+}
+.med-overdue .med-time,
+.med-row.med-overdue small {
+  color: var(--cherry);
+  font-weight: 700;
+}
+
+/* ---------- Pain / what-to-expect card ---------- */
+.pain-card .pain-expect-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  margin: 4px 0 8px;
+}
+.pain-expect-badge .num,
+.pain-card .pain-expect-badge strong {
+  font-family: var(--display-font);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* severity tints — flat blocks, deepening toward cherry */
+.pain-mild     { background: var(--accent-soft); color: #a4396b; }
+.pain-moderate { background: #f6a9c9;            color: #6d1230; }
+.pain-severe   { background: var(--cherry);      color: #fff; }
+
+/* red-flags — welfare signposting, collapsible */
+.pain-redflags {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.pain-redflags summary {
+  cursor: pointer;
+  color: var(--cherry);
+  font-weight: 700;
+  font-size: 13.5px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.pain-redflags summary::-webkit-details-marker { display: none; }
+.pain-redflags[open] summary { margin-bottom: 4px; }
+.pain-redflags ul { margin: 6px 0 2px; padding-left: 18px; }
+.pain-redflags li { margin: 4px 0; }
+.pain-redflags li::marker { color: var(--cherry); }
+
+/* ---------- Science card ---------- */
+.science-card .hormone-graph {
+  margin: 10px -4px 6px;
+}
+.science-card .hormone-graph svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.science-card .hormone-graph text {
+  font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+}
+
+.glow-chip,
+.sex-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 4px 6px 4px 0;
+}
+.glow-chip {
+  background: var(--cream);
+  border: 1px solid #ecd9ae;
+  color: var(--gold);
+}
+.sex-chip {
+  background: var(--cherry-soft);
+  border: 1px solid #e8bfc3;
+  color: var(--cherry);
+}
+.sex-chip::before { content: '♥'; font-size: 14px; line-height: 1; }
+
+.why-facts {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+.why-facts li {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 5px 0;
+}
+.why-facts li::marker { color: var(--cherry); }
+
+/* ---------- Meals card ---------- */
+.meals-card .meal-slot {
+  padding: 9px 0;
+  border-top: 1px dashed var(--border);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.meals-card .meal-slot:first-of-type { border-top: none; }
+.meals-card .meal-slot b,
+.meals-card .meal-slot strong {
+  color: var(--cherry);
+  font-weight: 800;
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  display: block;
+  margin-bottom: 2px;
+}
+.meal-why {
+  font-family: var(--display-font);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 6px 0 8px;
+}
+.nutrient-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 700;
+  margin: 3px 6px 3px 0;
+}
+
+/* ---------- Partner card (shared .card/.btn/.switch do the heavy lifting) ---------- */
+.partner-card input[type="text"] {
+  width: 100%;
+  margin: 6px 0 10px;
+}
+.partner-card .btn { width: 100%; margin-top: 10px; }
+.partner-card .set-row,
+.partner-card label { -webkit-tap-highlight-color: transparent; }
+
+/* ---------- Log: pain scale (0–10) ---------- */
+.pain-scale {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pain-chip {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s ease, border-color .15s ease, transform .1s ease;
+}
+.pain-chip:active { transform: scale(.92); }
+.pain-chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(244, 114, 168, .3);
+}
+/* the upper end of the scale reads cherry when selected */
+.pain-chip.on:nth-child(n+8) {
+  background: var(--cherry);
+  border-color: var(--cherry);
+  box-shadow: 0 3px 10px rgba(143, 29, 44, .28);
+}
+.pain-scale-label {
+  flex: 1 1 100%;
+  font-size: 12.5px;
+  color: var(--muted);
+}

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cycle — unit tests</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; margin: 24px; background: #faf7f9; color: #1f1a1e; }
+    h1 { font-size: 20px; }
+    #summary { font-weight: 600; margin: 12px 0; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 6px 10px; margin: 4px 0; border-radius: 8px; font-size: 14px; }
+    li.pass { background: #e5f7ec; color: #14683a; }
+    li.fail { background: #fde8ec; color: #a01a3c; }
+    li.fail .detail { display: block; font-family: monospace; font-size: 12px; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Cycle — model &amp; prediction tests</h1>
+  <div id="summary">Running…</div>
+  <ul id="results"></ul>
+
+  <script type="module">
+    import { addDays, diffDays, todayStr } from './js/db.js';
+    import { getPeriods, getCycles, cycleStats, currentState } from './js/model.js';
+    import { predictions } from './js/predict.js';
+
+    const results = [];
+    function assert(name, cond, detail) {
+      results.push({ name, pass: !!cond, detail: cond ? '' : String(detail || '') });
+    }
+    function eq(name, actual, expected) {
+      const a = JSON.stringify(actual), e = JSON.stringify(expected);
+      assert(name, a === e, `expected ${e}, got ${a}`);
+    }
+
+    // Synthetic log builder: for each start date, N consecutive days of flow.
+    function mkLogs(starts, periodLen = 5, flow = 'medium') {
+      const logs = [];
+      for (const s of starts) {
+        for (let i = 0; i < periodLen; i++) {
+          logs.push({ date: addDays(s, i), flow });
+        }
+      }
+      return logs.sort((a, b) => (a.date < b.date ? -1 : 1));
+    }
+
+    // ---- 1-3: date helpers (local-time, DST-safe) ----
+    eq('addDays crosses month boundary', addDays('2026-01-31', 1), '2026-02-01');
+    eq('addDays across DST change (late March)', addDays('2026-03-28', 5), '2026-04-02');
+    eq('diffDays across DST change', diffDays('2026-03-28', '2026-04-02'), 5);
+
+    // ---- 4-6: period grouping ----
+    const p1 = getPeriods(mkLogs(['2026-01-01'], 5));
+    eq('5 consecutive flow days -> one period of length 5',
+       p1, [{ start: '2026-01-01', end: '2026-01-05', length: 5 }]);
+
+    const gapLogs = [
+      { date: '2026-01-01', flow: 'light' },
+      { date: '2026-01-02', flow: 'heavy' },
+      // 2026-01-03 not logged — 1-day gap allowed within a period
+      { date: '2026-01-04', flow: 'light' }
+    ];
+    eq('1-day gap stays within one period',
+       getPeriods(gapLogs), [{ start: '2026-01-01', end: '2026-01-04', length: 4 }]);
+
+    const splitLogs = [
+      { date: '2026-01-01', flow: 'medium' },
+      { date: '2026-01-02', flow: 'medium' },
+      // 2 missing days -> new period
+      { date: '2026-01-05', flow: 'spotting' }
+    ];
+    const p3 = getPeriods(splitLogs);
+    assert('gap of >=2 days starts a new period (and lone spotting day counts)',
+           p3.length === 2 && p3[1].start === '2026-01-05' && p3[1].length === 1,
+           JSON.stringify(p3));
+
+    // ---- 7-8: cycles + stats on regular 28d data ----
+    const regStarts = ['2026-01-01', '2026-01-29', '2026-02-26'];
+    const regLogs = mkLogs(regStarts, 5);
+    const cycles = getCycles(regLogs);
+    assert('3 periods -> 3 cycles, first two 28d, last open-ended',
+           cycles.length === 3 && cycles[0].length === 28 && cycles[1].length === 28 &&
+           cycles[1].end === '2026-02-25' && cycles[2].length === null && cycles[2].end === null,
+           JSON.stringify(cycles));
+    eq('cycleStats on regular data', cycleStats(cycles),
+       { avgCycle: 28, stdCycle: 0, avgPeriod: 5, count: 2 });
+
+    // ---- 9-11: predictions on regular data (fixed "today") ----
+    const pr = predictions(regLogs, {}, '2026-03-05');
+    eq('next period = last start + 28', pr.nextPeriodStart, '2026-03-26');
+    eq('ovulation = next start - luteal(14)', pr.ovulationDate, '2026-03-12');
+    assert('fertile window = ovulation -5 .. +1',
+           pr.fertileStart === '2026-03-07' && pr.fertileEnd === '2026-03-13',
+           `${pr.fertileStart} .. ${pr.fertileEnd}`);
+
+    // ---- 12: futurePeriods ----
+    assert('futurePeriods: 3 entries spaced by avgCycle with avgPeriod length',
+           pr.futurePeriods.length === 3 &&
+           pr.futurePeriods[1].start === '2026-04-23' &&
+           pr.futurePeriods[0].end === '2026-03-30',
+           JSON.stringify(pr.futurePeriods));
+
+    // ---- 13: confidence high on >=3 tight cycles ----
+    const reg4 = mkLogs(['2026-01-01', '2026-01-29', '2026-02-26', '2026-03-26'], 5);
+    const pr4 = predictions(reg4, {}, '2026-03-28');
+    assert('4 regular periods -> confidence high, not irregular',
+           pr4.confidence === 'high' && pr4.irregular === false,
+           `confidence=${pr4.confidence} irregular=${pr4.irregular}`);
+
+    // ---- 14: irregular data ----
+    const irrLogs = mkLogs(['2026-01-01', '2026-01-21', '2026-03-02', '2026-03-27'], 4);
+    // cycle lengths: 20, 40, 25 -> std > 7
+    const prIrr = predictions(irrLogs, {}, '2026-03-30');
+    assert('wild cycle lengths -> irregular true, confidence low',
+           prIrr.irregular === true && prIrr.confidence === 'low',
+           `irregular=${prIrr.irregular} confidence=${prIrr.confidence}`);
+
+    // ---- 15: single period fallback ----
+    const single = mkLogs(['2026-02-01'], 4);
+    const prS = predictions(single, {}, '2026-02-10');
+    assert('single period: fallback avgCycle 28, prediction start+28, low confidence',
+           prS !== null && prS.avgCycle === 28 && prS.nextPeriodStart === '2026-03-01' &&
+           prS.confidence === 'low' && prS.irregular === true,
+           JSON.stringify(prS));
+    eq('no periods at all -> null', predictions([{ date: '2026-01-01', moods: ['happy'] }], {}, '2026-01-02'), null);
+
+    // ---- 16: cycleLengthOverride respected when no completed cycles ----
+    const prO = predictions(single, { cycleLengthOverride: 30 }, '2026-02-10');
+    eq('cycleLengthOverride used as fallback', prO.nextPeriodStart, '2026-03-03');
+
+    // ---- 17: overdue ----
+    const overdueLogs = mkLogs(['2026-01-01', '2026-01-29'], 5);
+    const prOv = predictions(overdueLogs, {}, '2026-03-03');
+    assert('5 days past prediction with no flow -> overdueDays 5, prediction not rolled',
+           prOv.overdueDays === 5 && prOv.nextPeriodStart === '2026-02-26',
+           `overdueDays=${prOv.overdueDays} next=${prOv.nextPeriodStart}`);
+
+    // ---- 18: stale data projects forward ----
+    const prProj = predictions(overdueLogs, {}, '2026-05-01');
+    assert('long-stale data rolls prediction forward past today, overdue resets',
+           prProj.nextPeriodStart === '2026-05-21' && prProj.overdueDays === 0,
+           `next=${prProj.nextPeriodStart} overdue=${prProj.overdueDays}`);
+
+    // ---- 19: weighted mean leans toward recent cycles ----
+    // cycle lengths oldest->recent: 26, 28, 30. Unweighted mean 28;
+    // recency-weighted (1,2,3) = 172/6 = 28.67 -> 29.
+    const wLogs = mkLogs(['2026-01-01', '2026-01-27', '2026-02-24', '2026-03-26'], 5);
+    const prW = predictions(wLogs, {}, '2026-03-31');
+    assert('avgCycle is recency-weighted (29, not 28)',
+           prW.avgCycle === 29 && prW.nextPeriodStart === addDays('2026-03-26', 29),
+           `avgCycle=${prW.avgCycle} next=${prW.nextPeriodStart}`);
+
+    // ---- 20: clamps ----
+    const longLogs = mkLogs(['2026-01-01', '2026-03-22', '2026-06-10'], 5); // 80-day gaps
+    const prL = predictions(longLogs, {}, '2026-06-15');
+    eq('avgCycle clamped to 60', prL.avgCycle, 60);
+
+    // ---- 21: currentState with real today ----
+    const t = todayStr();
+    const nowLogs = mkLogs([addDays(t, -1)], 2); // period started yesterday, flow today
+    const st = currentState(nowLogs, {});
+    assert('period started yesterday -> cycleDay 2, onPeriod, menstrual phase',
+           st.cycleDay === 2 && st.onPeriod === true && st.phase === 'menstrual' &&
+           st.cycleStart === addDays(t, -1),
+           JSON.stringify(st));
+
+    const stEmpty = currentState([], {});
+    assert('empty logs -> null state, no crash',
+           stEmpty.cycleDay === null && stEmpty.phase === null && stEmpty.onPeriod === false,
+           JSON.stringify(stEmpty));
+
+    // ---- V2 addendum (Agent S): js/moon.js — appended tests, originals untouched ----
+    const { moonPhase, moonCycleType, moonMarker } = await import('./js/moon.js');
+
+    // Real astronomy anchors: new moon 2026-07-14, full moon 2026-07-29.
+    const mpNew = moonPhase('2026-07-14');
+    assert('moonPhase: 2026-07-14 is a New Moon (illumination ≤ 5%)',
+           mpNew.name === 'New Moon' && mpNew.illumination <= 5,
+           JSON.stringify(mpNew));
+    const mpFull = moonPhase('2026-07-29');
+    assert('moonPhase: 2026-07-29 is a Full Moon (illumination ≥ 95%)',
+           mpFull.name === 'Full Moon' && mpFull.illumination >= 95,
+           JSON.stringify(mpFull));
+
+    // Bounds over a whole lunation.
+    let moonOk = true, moonBad = '';
+    for (let i = 0; i < 31; i++) {
+      const ds = addDays('2026-07-01', i);
+      const m = moonPhase(ds);
+      if (!(m.frac >= 0 && m.frac < 1) || !(m.illumination >= 0 && m.illumination <= 100) || !m.name || !m.emoji) {
+        moonOk = false; moonBad = ds + ' ' + JSON.stringify(m);
+      }
+    }
+    assert('moonPhase: frac ∈ [0,1) and illumination ∈ [0,100] across a full lunation', moonOk, moonBad);
+
+    // Archetype quadrants (white = new, pink = waxing, red = full, purple = waning).
+    eq('moonCycleType: period starting at new moon -> white', moonCycleType('2026-07-14').type, 'white');
+    eq('moonCycleType: period starting at full moon -> red', moonCycleType('2026-07-29').type, 'red');
+    eq('moonCycleType: period in waxing quadrant -> pink', moonCycleType('2026-07-21').type, 'pink');
+    eq('moonCycleType: period in waning quadrant -> purple', moonCycleType('2026-08-05').type, 'purple');
+
+    // Calendar markers: exactly one new-moon day and one full-moon day in July 2026.
+    const newDays = [], fullDays = [];
+    for (let d = 1; d <= 31; d++) {
+      const ds = '2026-07-' + String(d).padStart(2, '0');
+      const mk = moonMarker(ds);
+      if (mk === 'new') newDays.push(d);
+      if (mk === 'full') fullDays.push(d);
+    }
+    assert('moonMarker: one new-moon day (~14th) and one full-moon day (~29th) in July 2026',
+           newDays.length === 1 && fullDays.length === 1 &&
+           Math.abs(newDays[0] - 14) <= 1 && Math.abs(fullDays[0] - 29) <= 1,
+           JSON.stringify({ newDays, fullDays }));
+
+    // ---- V3 addendum (Agent C): model.cycleDayProfile — appended tests, originals untouched ----
+    const { cycleDayProfile } = await import('./js/model.js');
+
+    // Two cycles: cycle 1 starts 2026-01-01 (completed, 28 days), cycle 2 starts 2026-01-29 (open).
+    const cdpLogs = [
+      { date: '2026-01-01', flow: 'heavy',  painLevel: 6 },
+      { date: '2026-01-02', flow: 'heavy',  painLevel: 9 },
+      { date: '2026-01-03', flow: 'medium', painLevel: 4 },
+      { date: '2026-01-29', flow: 'medium', painLevel: 4 },
+      { date: '2026-01-30', flow: 'heavy',  painLevel: 7 },
+      { date: '2026-02-07', painLevel: 0 }   // cycle 2 day 10: explicitly pain-free, no bleeding
+    ];
+    const prof = cycleDayProfile(cdpLogs);
+    assert('cycleDayProfile: array spans the longest cycle (28 days)',
+           prof.length === 28, `length=${prof.length}`);
+    eq('cycleDayProfile: day 1 averaged across both cycles (heavy 4 + medium 3)',
+       prof[0], { day: 1, avgPain: 5, maxPain: 6, avgFlow: 3.5, n: 2 });
+    eq('cycleDayProfile: day 2 (her worst) — avgPain 8, maxPain 9, avgFlow 4',
+       prof[1], { day: 2, avgPain: 8, maxPain: 9, avgFlow: 4, n: 2 });
+    eq('cycleDayProfile: painLevel 0 is real data; logged day without flow counts as flow 0',
+       prof[9], { day: 10, avgPain: 0, maxPain: 0, avgFlow: 0, n: 1 });
+    eq('cycleDayProfile: unlogged cycle day -> null averages, n 0',
+       prof[5], { day: 6, avgPain: null, maxPain: null, avgFlow: null, n: 0 });
+    eq('cycleDayProfile: empty logs -> empty array', cycleDayProfile([]), []);
+
+    // ---- render ----
+    const ul = document.getElementById('results');
+    let passed = 0;
+    for (const r of results) {
+      const li = document.createElement('li');
+      li.className = r.pass ? 'pass' : 'fail';
+      li.textContent = (r.pass ? 'PASS — ' : 'FAIL — ') + r.name;
+      if (!r.pass) {
+        const d = document.createElement('span');
+        d.className = 'detail';
+        d.textContent = r.detail;
+        li.appendChild(d);
+      }
+      if (r.pass) passed++;
+      ul.appendChild(li);
+    }
+    const summary = document.getElementById('summary');
+    summary.textContent = `${passed} / ${results.length} passed`;
+    summary.style.color = passed === results.length ? '#14683a' : '#a01a3c';
+  </script>
+</body>
+</html>
