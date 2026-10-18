@@ -3,7 +3,7 @@
 
 import { getAllLogs, getSettings, addDays, diffDays } from '../db.js';
 import { getCycles, getPeriods, cycleStats, cycleDayProfile } from '../model.js';
-import { SYMPTOMS, MOODS } from '../taxonomy.js';
+import { SYMPTOMS, MOODS, SEX } from '../taxonomy.js';
 import { openReport } from './report.js';
 import { BUNNY_SLEEPY, SPARKLES } from '../art.js';
 
@@ -28,6 +28,9 @@ function fmtLong(dateStr) {
 
 const SYMPTOM_MAP = new Map(SYMPTOMS.map((s) => [s.key, s]));
 const MOOD_MAP = new Map(MOODS.map((m) => [m.key, m]));
+const SEX_MAP = new Map(SEX.map((s) => [s.key, s]));
+// Sex-taxonomy keys that are activity (vs. desire) — used for the libido-window stat.
+const SEX_ACTIVITY = ['protected', 'unprotected', 'masturbation'];
 
 // Phase palette (menstrual / follicular / ovulation / luteal).
 // Fixed order, never cycled; every use is paired with a text legend or label.
@@ -103,6 +106,80 @@ function symptomPhaseData(logs, completedCycles, lutealLength) {
       };
     });
   return { rows: top, cycleCount: n };
+}
+
+// Sex & desire by phase — same semantics as the symptom chart: for each
+// sex-taxonomy key, the % of completed cycles where it was logged in that phase.
+function sexPhaseData(logs, completedCycles, lutealLength) {
+  const n = completedCycles.length;
+  if (!n) return null;
+  const byDate = new Map(logs.map((l) => [l.date, l]));
+  const acc = new Map(); // key -> Map(phase -> Set(cycleIdx))
+  completedCycles.forEach((c, ci) => {
+    let d = c.start;
+    let guard = 0;
+    while (diffDays(d, c.end) >= 0 && guard++ < 400) {
+      const log = byDate.get(d);
+      if (log && Array.isArray(log.sex) && log.sex.length) {
+        const phase = phaseOfDate(d, c, lutealLength);
+        for (const key of log.sex) {
+          if (!SEX_MAP.has(key)) continue;
+          if (!acc.has(key)) acc.set(key, new Map());
+          const phases = acc.get(key);
+          if (!phases.has(phase)) phases.set(phase, new Set());
+          phases.get(phase).add(ci);
+        }
+      }
+      d = addDays(d, 1);
+    }
+  });
+  if (!acc.size) return null;
+  // Taxonomy order, not frequency order — the rows are few and fixed.
+  const rows = SEX.filter((t) => acc.has(t.key)).map((t) => {
+    const phases = acc.get(t.key);
+    return {
+      key: t.key,
+      label: `${t.emoji ? t.emoji + ' ' : ''}${t.label}`,
+      pcts: PHASES.map((p) => Math.round(((phases.get(p.key) || { size: 0 }).size / n) * 100)),
+    };
+  });
+  return { rows, cycleCount: n };
+}
+
+// Does her logged activity actually cluster in the predicted high-libido
+// window (ovulation −4 … +1)? Returns a one-line reading, or null when the
+// data is too thin to say anything honest.
+function libidoWindowStat(logs, completedCycles, lutealLength) {
+  const byDate = new Map(logs.map((l) => [l.date, l]));
+  let inDays = 0, inActive = 0, outDays = 0, outActive = 0;
+  for (const c of completedCycles) {
+    const ovu = addDays(c.end, -lutealLength);
+    let d = c.start;
+    let guard = 0;
+    while (diffDays(d, c.end) >= 0 && guard++ < 400) {
+      const off = diffDays(ovu, d); // d − ovu
+      const inWindow = off >= -4 && off <= 1;
+      const log = byDate.get(d);
+      const active = !!(log && Array.isArray(log.sex) && log.sex.some((k) => SEX_ACTIVITY.includes(k)));
+      if (inWindow) { inDays += 1; if (active) inActive += 1; }
+      else { outDays += 1; if (active) outActive += 1; }
+      d = addDays(d, 1);
+    }
+  }
+  if (inActive + outActive < 3 || !inDays || !outDays) return null;
+  const rateIn = inActive / inDays;
+  const rateOut = outActive / outDays;
+  if (rateOut === 0) {
+    return 'Every time you’ve logged sex, it fell inside your predicted high-libido window (ovulation −4 to +1). Your oestrogen keeps excellent company. 💗';
+  }
+  const ratio = rateIn / rateOut;
+  if (ratio >= 1.3) {
+    return `You’re about ${ratio >= 1.95 ? Math.round(ratio) : ratio.toFixed(1)}× more active during your predicted high-libido window (ovulation −4 to +1) — biology and your evenings agree. 💗`;
+  }
+  if (ratio <= 0.75) {
+    return 'Your logged activity actually leans outside the predicted high-libido window — desire is allowed to keep its own diary.';
+  }
+  return 'Your logged activity is spread fairly evenly across the cycle — no strong window effect in your data yet.';
 }
 
 const MOOD_BUCKETS = [
@@ -489,6 +566,20 @@ export default {
         : chartEmptyHTML('Log your flow each period day and your bleeding curve will appear here.');
       body += sectionHTML('Bleeding across your cycle', 'Average flow by cycle day — 1 spotting · 2 light · 3 medium · 4 heavy',
         flowBody);
+
+      // Sex & desire — needs completed cycles for honest phase attribution.
+      const sexData = completed.length ? sexPhaseData(logs, completed, luteal) : null;
+      let sexBody;
+      if (sexData) {
+        const note = libidoWindowStat(logs, completed, luteal);
+        sexBody = legendHTML(PHASES) + symptomPhaseSVG(sexData.rows)
+          + (note ? `<p class="ins-sexnote">${esc(note)}</p>` : '');
+      } else {
+        sexBody = chartEmptyHTML(completed.length
+          ? 'Nothing logged yet. Track sex & drive on the Log screen and your patterns by cycle phase will appear here — including whether your predicted high-libido window holds true for you.'
+          : 'Patterns unlock after your first completed cycle. Keep logging sex & drive on the Log screen in the meantime.');
+      }
+      body += sectionHTML('Sex & desire', 'How often, by cycle phase (% of completed cycles)', sexBody);
     }
 
     el.innerHTML = `

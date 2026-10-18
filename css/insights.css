@@ -238,3 +238,11 @@
   color: var(--muted);
   margin-top: 8px;
 }
+
+/* Sex & desire window note */
+.ins-sexnote {
+  margin: 12px 4px 0;
+  font: italic 500 14px "Didot", "Bodoni 72", Georgia, serif;
+  color: var(--cherry, #8f1d2c);
+  line-height: 1.5;
+}
