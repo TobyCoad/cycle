@@ -209,14 +209,28 @@
   font-weight: 700;
 }
 
-/* small dot marker: day has non-flow log data */
+/* small markers under the day number:
+   grey dot = any non-flow log data; heart = sex logged that day */
 .cal-mark {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--muted);
+  opacity: 0.55;
   margin-top: 3px;
   flex: none;
+}
+
+.cal-mark.heart {
+  width: auto;
+  height: auto;
+  background: none;
+  border-radius: 0;
+  opacity: 1;
+  color: var(--accent);
+  font-size: 9px;
+  line-height: 1;
+  margin-top: 2px;
 }
 
 .cal-mark.off {
@@ -273,7 +287,8 @@
 .cal-sw.sw-pred   { background: var(--predicted-period); border: 1.5px dashed var(--period); }
 .cal-sw.sw-fert   { background: rgba(142, 203, 240, 0.4); border-radius: 5px; }
 .cal-sw.sw-ovu    { background: transparent; border: 2px solid var(--ovulation); }
-.cal-sw.sw-mark   { width: 6px; height: 6px; background: var(--accent); margin: 0 4px; }
+.cal-sw.sw-mark   { width: 6px; height: 6px; background: var(--muted); opacity: 0.55; margin: 0 4px; }
+.cal-sw.sw-heart  { width: auto; height: auto; background: none; border-radius: 0; color: var(--accent); font-size: 11px; line-height: 1; margin: 0 4px; font-style: normal; }
 
 @supports (background: color-mix(in srgb, red 10%, transparent)) {
   .cal-sw.sw-fert { background: color-mix(in srgb, var(--fertile) 40%, transparent); }

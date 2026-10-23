@@ -41,14 +41,18 @@ const DROPLETS = { spotting: 1, light: 1, medium: 2, heavy: 3 };
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-// True if the log carries anything besides flow (drives the small dot marker).
-function hasNonFlowData(log) {
+// Day markers: a little heart when sex was logged; a quiet grey dot for any
+// other non-flow data (symptoms, pain, notes, …) so it never reads as blood.
+function hasSexLogged(log) {
+  return !!(log && Array.isArray(log.sex) && log.sex.length);
+}
+function hasOtherData(log) {
   if (!log) return false;
   if (Array.isArray(log.symptoms) && log.symptoms.length) return true;
   if (Array.isArray(log.moods) && log.moods.length) return true;
-  if (Array.isArray(log.sex) && log.sex.length) return true;
   if (Array.isArray(log.meds) && log.meds.length) return true;
   if (log.discharge != null && log.discharge !== '') return true;
+  if (log.painLevel != null) return true;
   if (log.temperature != null) return true;
   if (log.weight != null) return true;
   if (log.water != null) return true;
@@ -185,8 +189,10 @@ export default {
         }
         if (ovuVis(ds)) { cls.push('ovu'); ariaBits += ', predicted ovulation'; }
       }
-      const mark = !out && hasNonFlowData(log);
-      if (mark) ariaBits += ', has log entries';
+      const sexMark = !out && hasSexLogged(log);
+      const otherMark = !out && !sexMark && hasOtherData(log);
+      if (sexMark) ariaBits += ', sex logged';
+      else if (otherMark) ariaBits += ', has log entries';
 
       // V2: mark the one day nearest each exact new/full moon (guarded — a moon
       // failure must never break the calendar). Corner emoji, clear of the
@@ -209,7 +215,7 @@ export default {
         (moonHTML ? ' style="position:relative"' : '') +
         (out ? ' disabled tabindex="-1" aria-hidden="true"' : ` aria-label="${esc(aria)}"`) +
         `><span class="cal-circle"><span class="cal-daynum">${d}</span></span>` +
-        `<span class="cal-mark${mark ? '' : ' off'}"></span>${moonHTML}</button>`;
+        `<span class="cal-mark${sexMark ? ' heart' : ''}${(sexMark || otherMark) ? '' : ' off'}">${sexMark ? '♥' : ''}</span>${moonHTML}</button>`;
     }
 
     function gridHTML(y, m) {
@@ -265,6 +271,7 @@ export default {
     <span class="cal-lg"><i class="cal-sw sw-pred"></i>Predicted</span>
     <span class="cal-lg"><i class="cal-sw sw-fert"></i>Fertile</span>
     <span class="cal-lg"><i class="cal-sw sw-ovu"></i>Ovulation</span>
+    <span class="cal-lg"><i class="cal-sw sw-heart">♥</i>Sex</span>
     <span class="cal-lg"><i class="cal-sw sw-mark"></i>Logged</span>
   </div>
 
